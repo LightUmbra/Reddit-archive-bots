@@ -270,6 +270,7 @@ class OutlineBot:
                         skipped = 1
                     
                     elif submission.is_self and submission.selftext_html is not None: #for text posts with links
+                        archives = []
                         log.debug("Found text post...")
     
                         links = BeautifulSoup(unescape(
