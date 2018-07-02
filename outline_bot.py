@@ -1,10 +1,10 @@
 #!/usr/bin/python3
 
 contact_info = "" #Your username or subreddit name, with /u/ or /r/ included. Needed so users can contact you. If a sub name is used, modmail will be sent to that sub.
-working_sub = "" #The sub you want the bot to run in.
-bot_UN = "" #The bot's username. Should be the same as the name in brackets in your praw.ini file (e.g. [OutlineBot1]).
-footer_text = "I am a bot for posting Outline.com links."
-skip_sites = ["/r/","/u/","http://reddit.com","https://reddit.com","redd.it","redditmedia.com","imgur.com","twitter.com","youtube.com","youtu.be",".jpg",".png"] #sets sites for Outline.com to skip
+working_sub = "" #The sub you want the bot to run in. Exclude the /r/.
+bot_UN = "BussyShillBot" #The bot's username. Should be the same as the name in brackets in your praw.ini file (e.g. [OutlineBot1]). Exclude the /u/.
+skip_sites = ["reddit.com","redd.it","redditmedia.com","imgur.com","twitter.com","youtube.com","youtu.be","giphy.com"] #sets sites for Outline.com to skip
+footer_text = "I am a bot for posting Outline.com links." #This text is let people know the purpose of the bot
 INFO = ""
 
 import logging
@@ -31,10 +31,16 @@ MEGALODON_JP_FORMAT = "%Y-%m%d-%H%M-%S"
 LEN_MAX = 35
 REDDIT_API_WAIT = 10
 WARN_TIME = 300 #warn after spending 5 minutes on a post
-REDDIT_PATTERN = re.compile("https?://(([A-z]{2})(-[A-z]{2})"
-                            "?|beta|i|m|pay|ssl|www)\.?reddit\.com")
-SUBREDDIT_OR_USER = re.compile("/(u|user|r)/[^\/]+/?$")
+skip_ext = ["jpg","png","gif","gifv","mp4","jpeg","pdf","tiff","avi"] #file extensions to skip
 reddit = praw.Reddit(bot_UN, user_agent=USER_AGENT)
+wait = 5
+
+REDDIT_PATTERN = re.compile("https?://(([A-z]{2})(-[A-z]{2})"
+                            "?|old|beta|i|m|pay|ssl|www)\.?reddit\.com")
+SUBREDDIT_OR_USER = re.compile("/(u|user|r)/[^\/]+/?$")
+
+site_pattern = [re.compile("https?://(([A-z]{{2}})(-[A-z]{{2}})""?|old|beta|i|m|pay|ssl|www)\.{SITE}".format(SITE=sites)) for sites in skip_sites]
+ext_pattern = [re.compile("\.{EXT}($|\?)".format(EXT=ext)) for ext in skip_ext]
 
 ignorelist = set()
 
@@ -93,46 +99,55 @@ def skip_url(url): #Determines whether to skip a site when it's linked in a text
     """
     Skip naked username mentions and subreddit links.
     """  
-    count = 0
-    while count < len(skip_sites):    
-        if skip_sites[count] in url: #skips link if the site is in skip_sites and 
-            log.debug("True")
+    for patterns in site_pattern: # uses for loop and regexp to search for skipped sites in URLs
+        if len(re.findall(patterns, url)) > 0:
+            log.debug("site: true - skipping")
             return True
-        else: #Continues through while loop 
-            count += 1
-            log.debug("False")
-            continue
-    return False
+            break
+        else:
+            for ext in ext_pattern: # uses for loop and regexp to search for skipped sites in URLs
+                if len(re.findall(ext, url)) > 0:
+                    log.debug("site: false ext: True - skipping")
+                    return True
+                    break
+                else:
+                    log.debug("site: false ext: false")
+                    return False
             
 def skip_sub_url(submission): #Determines whether a post is a link post and skips it if the link is to a skipped site.
     """
     Skip naked username mentions and subreddit links.
     """
-    count = 0
     url = submission.url
     if submission.is_self: #determines whether the post is a text post. If it is, any links in the post will be checked by skip_url() later.
-        log.debug("False")
+        log.debug("Self post: true - skipping")
         return False
     else:
-        while count < len(skip_sites):    
-            if skip_sites[count] in url:
+        for patterns in site_pattern: # uses for loop and regexp to search for skipped sites in URLs
+            if len(re.findall(patterns, url)) > 0:
+                log.debug("site: true - skipping")
                 return True
-                log.debug("True")
+                break
             else:
-                log.debug("False")
-                count += 1
-                continue
-        return False
+                for ext in ext_pattern: # uses for loop and regexp to search for skipped sites in URLs
+                    if len(re.findall(ext, url)) > 0:
+                        log.debug("site: false ext: True - skipping")
+                        return True
+                        break
+                    else:
+                        return False
+                        log.debug("site: false ext: false")
         
-def err_wait(): #Function for delay following a major error
+def err_wait(wait): #Function for delay following a major error
+    time.sleep(wait)
+
     if wait >= 160: #Caps the error wait time at 160 seconds.
         wait = 160
-        log.error("Error: Waiting {} seconds".format(wait))
-        time.sleep(wait)
+        
     else:
         wait = wait*2 #Exponential backoff when there is an error.
-        log.error("Error: Waiting {} seconds".format(wait))
-        time.sleep(wait)
+        
+    return wait
 
 class NameMixin:
     site_name = None
@@ -174,7 +189,7 @@ class ArchiveContainer:
             self.text = (text[:LEN_MAX] + "...") if len(text) > LEN_MAX else text
 
 def get_footer(url):
-    return "^(*{ftr_text}*) [^(*github*)](https://github.com/LightUmbra/Reddit-archive-bots) [^(*Contact for info or issues*)]({contact})".format(ftr_text=footer_text, contact=CONTACT)
+    return "^(*{ftr_text}*) [^(*github*)](https://github.com/LightUmbra/Reddit-archive-bots) ^/ [^(*Contact for info or issues*)]({contact})".format(ftr_text=footer_text, contact=CONTACT)
 
 class Notification:
 
@@ -186,9 +201,7 @@ class Notification:
     def notify(self):
         """
         Replies with a comment containing the archives or if there are too
-        many links to fit in a comment, post a submisssion to
-        /r/SnapshillBotEx and then make a comment linking to it.
-        :return Nothing
+        many links to fit in a comment, infome them that there are too many links and there is not a solution yet.
         """
         try:
             comment = self._build()
@@ -250,10 +263,11 @@ class OutlineBot:
 
                 skipped = 0
                 if not skip_sub_url(submission):
-                    skipped = 1
-                    log.info("Self post: {}".format(submission.is_self))
+                    log.debug("Self post: {}".format(submission.is_self))
+                    
                     if not submission.is_self:
                         archives = [ArchiveContainer(fix_url(submission.url),"*This Post*")]
+                        skipped = 1
                     
                     elif submission.is_self and submission.selftext_html is not None: #for text posts with links
                         log.debug("Found text post...")
@@ -298,11 +312,10 @@ class OutlineBot:
                 if skipped == 1 :
                     Notification(submission, archives, submission.url).notify()
                     log.info("Reply sent")
-                    time.sleep(50)
+                    time.sleep(20)
                     skipped = 0
 
 if __name__ == "__main__":
-    wait = 5
     outlinebot = OutlineBot()
     log.info("Started.")
     try:
@@ -313,7 +326,11 @@ if __name__ == "__main__":
                 log.info("Done")
             except RECOVERABLE_EXC as e:
                 log.error(e)
-                err_wait()                
+                if wait >= 160:
+                    log.error("Error: Waiting {} seconds before trying again. If errors continue, check your internet connection and bot's username and password".format(wait))
+                else:
+                    log.error("Error: Waiting {} seconds before trying again.".format(wait))
+                wait = err_wait(wait)                
     except KeyboardInterrupt:
         log.info("Stop Dave. I'm afraid.")
         pass
