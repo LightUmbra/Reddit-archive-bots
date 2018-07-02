@@ -1,0 +1,35 @@
+This is the first quote.
+
+--
+
+This is the second.
+
+--
+
+This quote has
+
+M U L T I P L E
+
+L I N E S.
+
+--
+
+**BOLD QUOTE**
+
+--
+
+*Slanty quote*
+
+--
+
+[link quote](www.link.com)
+
+--
+
+This 🍆quote 🤑 has 💣💣dank 🤷🤷🤷emojis.\
+
+--
+
+^(This entire quote will be superscript and the parenthesis won't be there.)
+
+--
