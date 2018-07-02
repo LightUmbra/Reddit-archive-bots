@@ -4,7 +4,7 @@ contact_info = "" #Your username or subreddit name, with /u/ or /r/ included. Ne
 working_sub = "" #The sub you want the bot to run in.
 bot_UN = "" #The bot's username. Should be the same as the name in brackets in your praw.ini file (e.g. [OutlineBot1]).
 footer_text = "I am a bot for posting Outline.com links."
-skip_sites = ["/r/","/u/","reddit.com","redd.it","redditmedia.com","imgur.com","twitter.com","youtube.com","youtu.be",".jpg",".png"] #sets sites for Outline.com to skip
+skip_sites = ["/r/","/u/","http://reddit.com","https://reddit.com","redd.it","redditmedia.com","imgur.com","twitter.com","youtube.com","youtu.be",".jpg",".png"] #sets sites for Outline.com to skip
 INFO = ""
 
 import logging
