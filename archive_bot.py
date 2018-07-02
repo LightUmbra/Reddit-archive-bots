@@ -211,7 +211,7 @@ class ArchiveContainer:
         self.archives.append(ArchiveIsArchive(url))
 
 def get_footer():
-    return "*{ftr_text}* [*Contact for info or issues*]({contact})".format(ftr_text=footer_text, contact=CONTACT)
+    return "*{ftr_text}* [^(*github*)](https://github.com/LightUmbra/Reddit-archive-bots) [*Contact for info or issues*]({contact})".format(ftr_text=footer_text, contact=CONTACT)
 
 class Notification:
 
