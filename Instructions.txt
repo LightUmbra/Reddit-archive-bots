@@ -1,4 +1,4 @@
-If you have any questions, message me on reddit at /u/lightumbra or on github.
+If you have any questions, message me on reddit at /u/lightumbra or leave an issue on github. I'm more likely to respond to a reddit message.
 
 How to install
 
@@ -6,7 +6,7 @@ How to install
     a)For Windows, use the download here: https://www.python.org/downloads/
     b)For Linux, use your distro's package manager.
     
-2) Install pip3. Pip is a package manager that allows you to easily downloadand install python libraries, frameworks, and other pieces of python software.
+2) Install pip. Pip is a package manager that allows you to easily downloadand install python libraries, frameworks, and other pieces of python software.
     a)For Windows, this should come with the Python download.
     b)For Linux, this may require an additional download.
     
@@ -14,8 +14,10 @@ How to install
     a)For Windows, type the following lines in a command prompt.
     b)For Linux, type the following lines in a your terminal.
     
-    pip3 install praw
-    pip3 install beautifulsoup4
+    pip install praw
+    pip install beautifulsoup4
+    
+    If you also have Python 2 installed, you may have to use "pip3" instead of "pip".
 
 4)Download the .py file for the bot you want to use and put it in a new folder.
     a) Download the example praw.ini file and put it in the same folder as you but the .py file.
@@ -25,7 +27,7 @@ How to install
     a) Open the praw.ini file paste the username after "username=" and the password after "password=".
         i) Keep this file open for later.
         
-6)Now we will set the new account up as a bot. - There is an example picture called "apps.PNG".
+6)Now we will set the new account up as a bot. - There is a picture with an example called "apps.PNG".
     a) Log into the new account using the username and password made in the previous step.
     b) Go to the following url: https://www.reddit.com/prefs/apps/
     c) Click the button that says "are you a developer? create an app..."
@@ -50,9 +52,11 @@ How to install
     replaced by what you entered in step 7b. If this file isn't made automatically, create an empty text file that follows called "subreddit_posts_replied_to.txt", with "subreddit" being replaced by what you entered in step 7b.
     
     a) To run the script in Windows, go to the folder with your .py folder. In the address bar at the top of the window, type cmd and hit enter. This should open up a command prompt window in that directory.
-        i) Type "python bot_name.py", replacing "bot_name.py" with the name of your .py file.
+        i) Type "python bot_name.py", replacing "bot_name.py" with the name of your .py file. 
         ii) The script will begin running. Closing out of this window will stop the script, so it needs to stay open.
         iii) If you want to stop the script, hit "Ctrl+c". You can restart it by following step i again.
+        
+        If you also have Python 2 installed, you may have to use "python3" instead of "python".
         
     b) To run the script on Linux, open your terminal and cd to the directory with your script.
         i) You will need to make it executable by running "chmod a+x bot_name.py", replacing "bot_name.py" with the name of your .py file. Depending on your setup this may require sudo.
@@ -60,11 +64,13 @@ How to install
         iii) The script will begin running. Closing out of this window will stop the script, so it needs to stay open.
         iv) If you want to stop the script, hit "Ctrl+c". You can restart it by following step ii again.
         
-Adding quotes - example file is available
+        
+        
+Adding quotes - example file is available (example_quotes.txt)
 
 1) Create a file called "subreddit_quotes.txt", replacing "subreddit" with the subreddit name you entered in step 7b.
 
-2) Open this new file and enter your first quote. Your quotes should follow Reddit's markdown formatting, (i.e. two enters for a new line, *for italics*, **for bold text**, [links](not_shady_link.com), etc.).
+2) Open this new file and enter your first quote. Your quotes should follow Reddit's markdown formatting, (i.e. two enters for a new line, *for italics*, **for bold text**, [links](www.not_shady_link.com), etc.).
 
 3) At the end of the this quote, hit enter twice, type two dashes (--), and hit enter two more times.
 
