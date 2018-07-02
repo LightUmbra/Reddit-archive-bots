@@ -1,7 +1,7 @@
 # Reddit archive bots
 
 
-This repository contains python scripts for two different reddit bots. It also includes instructions for using them.
+This repository contains python scripts for two different reddit bots. It also includes instructions for using them. Both should work on Windows and Linux. They may work on Mac as well, but I can't test it on a Mac.
 
 The first, archive_bot.py, makes archives of links in submissions in [archive.org](https://web.archive.org/), [archive.is](http://archive.is/), and [removeddit.com](http://removeddit.com/) for Reddit links and just archive.org and archive.is for non-Reddit links.
 
