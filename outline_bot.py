@@ -16,10 +16,11 @@ import requests
 import time
 import traceback
 import warnings
+import argparse
 import urllib.request
 from bs4 import BeautifulSoup
 from html.parser import unescape
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 from praw.exceptions import APIException, ClientException
 from prawcore.exceptions import RequestException, ResponseException, OAuthException
 
@@ -35,14 +36,18 @@ skip_ext = ["jpg","png","gif","gifv","mp4","jpeg","pdf","tiff","avi"] #file exte
 reddit = praw.Reddit(bot_UN, user_agent=USER_AGENT)
 wait = 5
 
-REDDIT_PATTERN = re.compile("https?://(([A-z]{2})(-[A-z]{2})"
-                            "?|old|beta|i|m|pay|ssl|www)\.?reddit\.com")
+REDDIT_PATTERN = re.compile("https?://(([A-z]{2})(-[A-z]{2})?|old|beta|i|m|pay|ssl|www)\.?reddit\.com")
 SUBREDDIT_OR_USER = re.compile("/(u|user|r)/[^\/]+/?$")
-
-site_pattern = [re.compile("https?://(([A-z]{{2}})(-[A-z]{{2}})""?|old|beta|i|m|pay|ssl|www)\.{SITE}".format(SITE=sites)) for sites in skip_sites]
+site_pattern = [re.compile("https?://[A-z]{{2}}-[A-z]{{2}}|beta|i|m|pay|ssl|www\.({SITE})".format(SITE=sites)) for sites in skip_sites]
 ext_pattern = [re.compile("\.{EXT}($|\?)".format(EXT=ext)) for ext in skip_ext]
 
 ignorelist = set()
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-d", "--debug", help="shows additional debug information", action="store_true")
+args = parser.parse_args()
+
+DEBUG = args.debug
 
 RECOVERABLE_EXC = (APIException,
                    ClientException,
@@ -99,44 +104,53 @@ def skip_url(url): #Determines whether to skip a site when it's linked in a text
     """
     Skip naked username mentions and subreddit links.
     """  
-    for patterns in site_pattern: # uses for loop and regexp to search for skipped sites in URLs
-        if len(re.findall(patterns, url)) > 0:
-            log.debug("site: true - skipping")
+    #if urlparse(url).netloc in skip_sites: # uses urllib.urlparse() to search for skipped sites in URLs
+    #    log.debug("site: true - skipping")
+    #    return True
+    for sites in skip_sites:
+        for site in site_pattern:
+            if len(re.findall(site, url)) > 0:
+                return "site True"
+                break
+            else:
+                continue
+    for ext in ext_pattern: # uses for loop and regexp to search for skipped sites in URLs
+        if len(re.findall(ext, url)) > 0:
+            log.debug("site: false ext: True - skipping")
             return True
             break
         else:
-            for ext in ext_pattern: # uses for loop and regexp to search for skipped sites in URLs
-                if len(re.findall(ext, url)) > 0:
-                    log.debug("site: false ext: True - skipping")
-                    return True
-                    break
-                else:
-                    log.debug("site: false ext: false")
-                    return False
-            
+            log.debug("site: false ext: false")
+            continue
+    log.debug("Not skipped")
+    return False
+    
 def skip_sub_url(submission): #Determines whether a post is a link post and skips it if the link is to a skipped site.
     """
     Skip naked username mentions and subreddit links.
     """
     url = submission.url
     if submission.is_self: #determines whether the post is a text post. If it is, any links in the post will be checked by skip_url() later.
-        log.debug("Self post: true - skipping")
+        log.debug("Self post: true - running")
         return False
     else:
-        for patterns in site_pattern: # uses for loop and regexp to search for skipped sites in URLs
-            if len(re.findall(patterns, url)) > 0:
-                log.debug("site: true - skipping")
+        for sites in skip_sites:
+            for site in site_pattern:
+                if len(re.findall(site, url)) > 0:
+                    return "site True"
+                    break
+                else:
+                    continue
+        for ext in ext_pattern: # uses for loop and regexp to search for skipped sites in URLs
+            if len(re.findall(ext, url)) > 0:
+                log.debug("site: false ext: True - skipping")
                 return True
                 break
             else:
-                for ext in ext_pattern: # uses for loop and regexp to search for skipped sites in URLs
-                    if len(re.findall(ext, url)) > 0:
-                        log.debug("site: false ext: True - skipping")
-                        return True
-                        break
-                    else:
-                        return False
-                        log.debug("site: false ext: false")
+                log.debug("site: false ext: false")
+                continue
+        log.debug("Not skipped")
+        return False
         
 def err_wait(wait): #Function for delay following a major error
     time.sleep(wait)
@@ -201,7 +215,9 @@ class Notification:
     def notify(self):
         """
         Replies with a comment containing the archives or if there are too
-        many links to fit in a comment, infome them that there are too many links and there is not a solution yet.
+        many links to fit in a comment, post a submisssion to
+        /r/SnapshillBotEx and then make a comment linking to it.
+        :return Nothing
         """
         try:
             comment = self._build()
@@ -234,7 +250,7 @@ class Notification:
                                               archive=archive_link))
 
             parts.append("{}. {} - {}".format(i, link.text, ", ".join(subparts)))
-        log.debug("Footer url: {}".format(urllib.parse.quote_plus(str(self.url))))
+        #log.debug("Footer url: {}".format(urllib.parse.quote_plus(str(self.url))))
         parts.append(get_footer(self.url))
 
         return "\n\n".join(parts)
@@ -250,6 +266,7 @@ class OutlineBot:
         Checks through the submissions and archives and posts comments.
         """
         subreddit1 = reddit.subreddit(working_sub)
+        skipped = 0
 
         for submission in subreddit1.stream.submissions():
             if submission.id not in posts_replied_to:
@@ -263,7 +280,7 @@ class OutlineBot:
 
                 skipped = 0
                 if not skip_sub_url(submission):
-                    log.debug("Self post: {}".format(submission.is_self))
+                    log.info("Self post: {}".format(submission.is_self))
                     
                     if not submission.is_self:
                         archives = [ArchiveContainer(fix_url(submission.url),"*This Post*")]
@@ -288,37 +305,45 @@ class OutlineBot:
         
                                 warned = True
         
-                            log.debug("Found link in text post...")
-        
                             fixedurl = fix_url(anchor['href'])
         
-                            if skip_url(fixedurl):
-                                continue
+                            log.debug("Found link in text post...{}".format(fixedurl))
+                            
+                            #if skip_url(fixedurl):
+                            #    continue
         
-                            if fixedurl in finishedURLs:
-                                continue #skip for sanity
-        
-                            archives.append(ArchiveContainer(fixedurl, anchor.contents[0]))
+                            #if fixedurl in finishedURLs:
+                            #    continue #skip for sanity
+                            
+                            if not skip_url(fixedurl) and not fixedurl in finishedURLs:
+                                archives.append(ArchiveContainer(fixedurl, anchor.contents[0]))
+                                log.debug("Archives Appended {}".format(skip_url(fixedurl)))
                             finishedURLs.append(fixedurl)
                             ratelimit(fixedurl)
-                            wait=5 #resets error wait time.
+                            log.debug(archives)
+                        if len(archives) > 0:
+                            skipped = 1
+                        else:
+                            skipped = 2
                             
                     else: #for text posts with no content
                         skipped = 2
-                        log.info("Skipped")                            
+                        log.info("Skipped SP")                            
                 else:
                     skipped = 2
                     log.info("Skipped")
                     
-                if skipped == 1 :
-                    Notification(submission, archives, submission.url).notify()
-                    log.info("Reply sent")
-                    time.sleep(20)
-                    skipped = 0
+            if skipped == 1 :
+                Notification(submission, archives, submission.url).notify()
+                log.info("Reply sent")
+                time.sleep(20)
+                skipped = 0
 
 if __name__ == "__main__":
     outlinebot = OutlineBot()
     log.info("Started.")
+    if DEBUG:
+        log.debug("Debug mode on.")
     try:
         while True:
             try:

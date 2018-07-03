@@ -1,6 +1,12 @@
 If you have any questions, message me on reddit at /u/lightumbra or leave an issue on github. I'm more likely to respond to a reddit message.
 
-How to install
+Options:
+
+-d --debug
+    Runs the script with debug additional information output to log.
+
+
+How to install:
 
 1) Install Python 3.6 or higher
     a)For Windows, use the download here: https://www.python.org/downloads/
@@ -66,7 +72,7 @@ How to install
         
         
         
-Adding quotes - example file is available (example_quotes.txt)
+Adding quotes - example file is available (example_quotes.txt):
 
 1) Create a file called "subreddit_quotes.txt", replacing "subreddit" with the subreddit name you entered in step 7b.
 
