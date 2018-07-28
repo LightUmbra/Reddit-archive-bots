@@ -24,7 +24,7 @@ from prawcore.exceptions import RequestException, ResponseException, OAuthExcept
 
 DEBUG = False
 CONTACT = "/message/compose?to=\{UN}".format(UN=contact_info)
-USER_AGENT = "Creates Outline.com links for linked websites" 
+USER_AGENT = "Creates archives links for linked websites. Contact me at Reddit.com at {}".format(contact_info)
 ARCHIVE_ORG_FORMAT = "%Y%m%d%H%M%S"
 MEGALODON_JP_FORMAT = "%Y-%m%d-%H%M-%S"
 LEN_MAX = 35
