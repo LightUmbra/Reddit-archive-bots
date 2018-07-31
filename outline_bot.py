@@ -138,14 +138,12 @@ def skip_sub_url(submission): #Determines whether a post is a link post and skip
             for site in site_pattern:
                 if len(re.findall(site, url)) > 0:
                     return "site True"
-                    break
                 else:
                     continue
         for ext in ext_pattern: # uses for loop and regexp to search for skipped sites in URLs
             if len(re.findall(ext, url)) > 0:
                 log.debug("site: false ext: True - skipping")
                 return True
-                break
             else:
                 log.debug("site: false ext: false")
                 continue
@@ -286,7 +284,7 @@ class OutlineBot:
                         archives = [ArchiveContainer(fix_url(submission.url),"*This Post*")]
                         skipped = 1
                     
-                    elif submission.is_self and submission.selftext_html is not None: #for text posts with links
+                    elif submission.is_self and submission.selftext_html is not None:  # for text posts with links
                         archives = []
                         log.debug("Found text post...")
     
@@ -309,10 +307,10 @@ class OutlineBot:
         
                             log.debug("Found link in text post...{}".format(fixedurl))
                             
-                            #if skip_url(fixedurl):
+                            # if skip_url(fixedurl):
                             #    continue
         
-                            #if fixedurl in finishedURLs:
+                            # if fixedurl in finishedURLs:
                             #    continue #skip for sanity
                             
                             if not skip_url(fixedurl) and not fixedurl in finishedURLs:
@@ -326,7 +324,7 @@ class OutlineBot:
                         else:
                             skipped = 2
                             
-                    else: #for text posts with no content
+                    else:  # for text posts with no content
                         skipped = 2
                         log.info("Skipped SP")                            
                 else:

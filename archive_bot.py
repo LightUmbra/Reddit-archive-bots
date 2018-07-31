@@ -282,7 +282,7 @@ class Snapshill:
         Checks through the submissions and archives and posts comments.
         """
 
-        subreddit1 = reddit.subreddit('drama')
+        subreddit1 = reddit.subreddit(working_sub)
 
         for submission in subreddit1.stream.submissions():
             if submission.id not in posts_replied_to:
